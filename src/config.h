@@ -15,6 +15,7 @@ namespace config {
 
     int hevc_mode;
 
+    int min_fps_target;  // Minimum fps target, determines minimum frame time
     int min_threads;  // Minimum number of threads/slices for CPU encoding
     struct {
       std::string sw_preset;

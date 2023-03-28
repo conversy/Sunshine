@@ -1311,6 +1311,10 @@ namespace video {
       return;
     }
 
+    // set minimum frame time, avoiding violation of client-requested target framerate
+    auto minimum_frame_time = std::chrono::milliseconds(1000 / std::min(config.framerate, config::video.min_fps_target));
+    BOOST_LOG(debug) << "Minimum frame time set to "sv << minimum_frame_time.count() << "ms, based on min fps target of "sv << std::min(config.framerate, config::video.min_fps_target) << "."sv;
+
     auto frame = session->device->frame;
 
     auto shutdown_event = mail->event<bool>(mail::shutdown);
@@ -1336,9 +1340,9 @@ namespace video {
         idr_events->pop();
       }
 
-      // Encode at a minimum of 10 FPS to avoid image quality issues with static content
+      // Encode at a minimum FPS to avoid image quality issues with static content
       if (!frame->key_frame || images->peek()) {
-        if (auto img = images->pop(100ms)) {
+        if (auto img = images->pop(minimum_frame_time)) {
           if (session->device->convert(*img)) {
             BOOST_LOG(error) << "Could not convert image"sv;
             return;
